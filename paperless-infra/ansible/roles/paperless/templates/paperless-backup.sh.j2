@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Sicherstellen, dass das Skript als root läuft
+if [[ "$EUID" -ne 0 ]]; then
+  echo "[!] Dieses Skript muss als root ausgeführt werden (sudo ./paperless-backup.sh)."
+  exit 1
+fi
+
+# Quelle (Paperless-Root)
+SOURCE_ROOT="{{ paperless_root }}"
+
+# Ziel-Root (Backup-Volume, separater Mount)
+BACKUP_ROOT="{{ paperless_backup_dir }}"
+
+# Hostname für Unterordner
+HOSTNAME="$(hostname -s)"
+
+# Datum/Zeit für Dateinamen
+DATE="$(date +%F_%H-%M-%S)"
+
+# Finales Backup-Verzeichnis (z. B. /paperless-backups/<hostname>)
+BACKUP_DIR="${BACKUP_ROOT}/${HOSTNAME}"
+
+# Archivname
+ARCHIVE_NAME="paperless-${HOSTNAME}-${DATE}.tar.gz"
+ARCHIVE_PATH="${BACKUP_DIR}/${ARCHIVE_NAME}"
+
+echo "[*] Starte Paperless-Backup"
+echo "    Quelle: ${SOURCE_ROOT}"
+echo "    Ziel:   ${ARCHIVE_PATH}"
+
+# Prüfen, ob SOURCE_ROOT existiert
+if [ ! -d "${SOURCE_ROOT}" ]; then
+  echo "[!] Fehler: SOURCE_ROOT ${SOURCE_ROOT} existiert nicht."
+  exit 1
+fi
+
+# Prüfen, ob BACKUP_ROOT existiert
+if [ ! -d "${BACKUP_ROOT}" ]; then
+  echo "[!] Fehler: BACKUP_ROOT ${BACKUP_ROOT} existiert nicht."
+  echo "    Ist das Backup-Volume korrekt gemountet?"
+  exit 1
+fi
+
+# Optional: prüfen, ob BACKUP_ROOT wirklich ein Mountpoint ist
+if ! mountpoint -q "${BACKUP_ROOT}"; then
+  echo "[!] Warnung: ${BACKUP_ROOT} ist kein eigener Mountpoint."
+  echo "    (Weiter mit Backup in 5 Sekunden – Abbrechen mit Ctrl+C)"
+  sleep 5
+fi
+
+# Backup-Verzeichnis anlegen
+mkdir -p "${BACKUP_DIR}"
+
+# Tar-Archiv erstellen
+# -C / <basename> sorgt dafür, dass der Pfad im Archiv mit "paperless/..." beginnt.
+tar -czf "${ARCHIVE_PATH}" -C / "$(basename "${SOURCE_ROOT}")"
+
+echo "[*] Backup fertig."
+echo "    Archiv: ${ARCHIVE_PATH}"

@@ -1,0 +1,11 @@
+---
+# Master-Playbook: vollständige Provisionierung eines Paperless-Hosts
+
+- name: Setup system + Docker + Paperless
+  hosts: paperless
+  become: true
+
+  roles:
+    - common      # System-Basis, Firewall, Updates, Tools
+    - docker      # Docker Engine, docker-compose-plugin etc.
+    - paperless   # Paperless-Stack (docker-compose)

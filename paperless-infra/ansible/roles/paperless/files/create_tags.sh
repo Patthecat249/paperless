@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+SERVER="http://paperless.home.local"
+TOKEN="fc8f357a2f6d617a88454319c74c67f584519644"   # <- WICHTIG
+
+TAGS="
+ADAC
+AGB
+Amtsgericht
+Auspuff
+Berliner Sparkasse
+Brunch
+Dacia
+DKB
+Ducati
+EAD
+Eheurkunde
+Einwohnermeldeamt
+Finanzamt
+Führerschein
+Geburtsurkunde
+GEZ
+HDI
+Heiratsurkunde
+Hotel
+Indian
+"
+
+for name in $TAGS; do
+  echo "→ Erzeuge Tag: $name"
+  curl -s -X POST "$SERVER/api/tags/" \
+    -H "Authorization: Token $TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{\"name\": \"$name\"}"
+  echo
+done
+
+echo "✔️ Fertig!"

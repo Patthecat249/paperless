@@ -1,0 +1,7 @@
+- name: Base setup for Ubuntu 24 paperless host
+  hosts: paperless
+  become: true
+
+  roles:
+    - common
+    - docker

@@ -1,0 +1,2 @@
+# Erlaubte Firewall-Ports setzen
+firewall_allowed_tcp_ports: []

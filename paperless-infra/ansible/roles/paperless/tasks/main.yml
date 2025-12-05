@@ -1,0 +1,88 @@
+---
+- name: Ensure base directories for paperless exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ paperless_system_user }}"
+    group: "{{ paperless_system_group }}"
+    mode: '0755'
+  loop:
+    - "{{ paperless_root }}"
+    - "{{ paperless_stack_dir }}"
+    - "{{ paperless_data_dir }}"
+    - "{{ paperless_media_dir }}"
+    - "{{ paperless_appdata_dir }}"
+    - "{{ paperless_export_dir }}"
+    - "{{ paperless_consume_dir }}"
+    - "{{ paperless_db_dir }}"
+    - "{{ paperless_postgres_dir }}"
+    - "{{ paperless_redis_dir }}"
+    - "{{ paperless_backup_dir }}"
+    - "{{ paperless_backup_scripts_dir }}"
+
+- name: Deploy docker-compose.yml from template
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ paperless_stack_dir }}/docker-compose.yml"
+    owner: "{{ paperless_system_user }}"
+    group: "{{ paperless_system_group }}"
+    mode: '0644'
+
+- name: Deploy docker-compose.env from template
+  ansible.builtin.template:
+    src: docker-compose.env.j2
+    dest: "{{ paperless_stack_dir }}/docker-compose.env"
+    owner: "{{ paperless_system_user }}"
+    group: "{{ paperless_system_group }}"
+    mode: '0640'
+
+- name: Ensure correct ownership for paperless root directory
+  ansible.builtin.file:
+    path: "{{ paperless_root }}"
+    state: directory
+    recurse: true
+    owner: "{{ paperless_system_user }}"
+    group: "{{ paperless_system_group }}"
+
+- name: Pull and start paperless stack with docker compose
+  ansible.builtin.command:
+    cmd: docker compose up -d
+    chdir: "{{ paperless_stack_dir }}"
+  register: compose_result
+  changed_when: >
+    'Creating' in compose_result.stdout or
+    'Recreating' in compose_result.stdout or
+    'Pulling' in compose_result.stdout or
+    'Starting' in compose_result.stdout
+
+- name: Ensure backup base directory exists
+  ansible.builtin.file:
+    path: "{{ paperless_backup_dir }}"
+    state: directory
+    owner: "{{ paperless_system_user | default('paperless') }}"
+    group: "{{ paperless_system_group | default('paperless') }}"
+    mode: '0755'
+
+- name: Ensure backup scripts directory exists
+  ansible.builtin.file:
+    path: "{{ paperless_backup_scripts_dir }}"
+    state: directory
+    owner: "{{ paperless_system_user | default('paperless') }}"
+    group: "{{ paperless_system_group | default('paperless') }}"
+    mode: '0755'
+
+- name: Deploy paperless backup script
+  ansible.builtin.template:
+    src: paperless-backup.sh.j2
+    dest: "{{ paperless_backup_scripts_dir }}/paperless-backup.sh"
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Deploy paperless restore script
+  ansible.builtin.template:
+    src: paperless-restore.sh.j2
+    dest: "{{ paperless_backup_scripts_dir }}/paperless-restore.sh"
+    owner: root
+    group: root
+    mode: '0755'

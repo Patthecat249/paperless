@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Sicherstellen, dass das Skript als root läuft
+if [[ "$EUID" -ne 0 ]]; then
+  echo "[!] Dieses Skript muss als root ausgeführt werden (sudo ./paperless-restore.sh)."
+  exit 1
+fi
+
+# Konstanten wie im Backup-Skript
+PAPERLESS_ROOT="{{ paperless_root }}"
+STACK_DIR="{{ paperless_stack_dir }}"
+BACKUP_ROOT="{{ paperless_backup_dir }}"
+
+if [[ $# -ne 1 ]]; then
+  echo "Usage: $0 /pfad/zum/paperless-<host>-<datum>.tar.gz"
+  echo "       (Tipp: Backups liegen unter ${BACKUP_ROOT}/<hostname>/)"
+  exit 1
+fi
+
+BACKUP_ARCHIVE="$1"
+
+if [[ ! -f "${BACKUP_ARCHIVE}" ]]; then
+  echo "[!] Fehler: Backup-Archiv ${BACKUP_ARCHIVE} existiert nicht."
+  exit 1
+fi
+
+TIMESTAMP="$(date +%F_%H-%M-%S)"
+RESTORE_BACKUP_OLD="${PAPERLESS_ROOT}.restore-${TIMESTAMP}"
+
+echo "[*] Starte Restore"
+echo "    Archiv:    ${BACKUP_ARCHIVE}"
+echo "    Ziel:      ${PAPERLESS_ROOT}"
+echo "    Stack dir: ${STACK_DIR}"
+echo
+
+{% if paperless_restore_manage_docker %}
+# 1) Docker-Stack stoppen (wenn vorhanden)
+if [[ -d "${STACK_DIR}" && -f "${STACK_DIR}/docker-compose.yml" ]]; then
+  echo "[*] Stoppe bestehenden Docker-Stack (docker compose down) ..."
+  (cd "${STACK_DIR}" && docker compose down) || echo "[!] Warnung: docker compose down fehlgeschlagen oder Stack nicht laufend."
+else
+  echo "[*] Hinweis: Kein Stack-Verzeichnis mit docker-compose.yml gefunden, überspringe docker compose down."
+fi
+{% else %}
+echo "[*] Hinweis: paperless_restore_manage_docker=false, überspringe docker compose down/up."
+{% endif %}
+
+# 2) Bestehendes /paperless wegsichern, falls vorhanden
+if [[ -d "${PAPERLESS_ROOT}" ]]; then
+  echo "[*] Verschiebe aktuelles ${PAPERLESS_ROOT} nach ${RESTORE_BACKUP_OLD} ..."
+  mv "${PAPERLESS_ROOT}" "${RESTORE_BACKUP_OLD}"
+else
+  echo "[*] Hinweis: ${PAPERLESS_ROOT} existiert nicht, nichts zu verschieben."
+fi
+
+# 3) Backup-Archiv zurückspielen
+echo "[*] Entpacke Backup-Archiv nach / ..."
+# Das Archiv enthält "paperless/..." (wegen -C / paperless beim Backup)
+tar -xzf "${BACKUP_ARCHIVE}" -C /
+
+echo "[*] Restore abgeschlossen. Neue Inhalte liegen unter ${PAPERLESS_ROOT}"
+
+{% if paperless_restore_manage_docker %}
+# 4) Stack wieder starten, falls docker-compose.yml vorhanden
+if [[ -d "${STACK_DIR}" && -f "${STACK_DIR}/docker-compose.yml" ]]; then
+  echo "[*] Starte Docker-Stack (docker compose up -d) ..."
+  (cd "${STACK_DIR}" && docker compose up -d)
+  echo "[*] Docker-Stack wurde gestartet."
+else
+  echo "[!] Hinweis: Konnte keinen docker-compose.yml in ${STACK_DIR} finden."
+  echo "    Bitte prüfe manuell und starte ggf. mit:"
+  echo "      cd ${STACK_DIR}"
+  echo "      docker compose up -d"
+fi
+{% endif %}
+
+echo
+echo "[*] Restore fertig."
+echo "    Altes Paperless-Verzeichnis liegt (falls vorhanden) unter: ${RESTORE_BACKUP_OLD}"

@@ -1,0 +1,89 @@
+---
+- name: Ensure APT cache is up to date
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Upgrade all packages (dist-upgrade)
+  ansible.builtin.apt:
+    upgrade: dist
+  register: upgrade_result
+
+- name: Reboot if kernel or core libraries were upgraded
+  ansible.builtin.reboot:
+    msg: "Reboot initiated by Ansible after package upgrade"
+    connect_timeout: 60
+    reboot_timeout: 600
+    pre_reboot_delay: 0
+    post_reboot_delay: 30
+  when: upgrade_result is changed
+
+- name: Set timezone to Europe/Berlin
+  community.general.timezone:
+    name: Europe/Berlin
+
+- name: Install basic tools
+  ansible.builtin.apt:
+    name:
+      - vim
+      - htop
+      - curl
+      - wget
+      - git
+      - ca-certificates
+      - gnupg
+      - lsb-release
+    state: present
+    update_cache: true
+
+- name: Enable unattended upgrades
+  ansible.builtin.apt:
+    name:
+      - unattended-upgrades
+      - apt-listchanges
+    state: present
+
+- name: Configure unattended upgrades
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Download-Upgradeable-Packages "1";
+      APT::Periodic::AutocleanInterval "7";
+      APT::Periodic::Unattended-Upgrade "1";
+    owner: root
+    group: root
+    mode: '0644'
+
+# Firewall-Konfiguration mit UFW (Ubuntu)
+- name: Ensure ufw is installed
+  ansible.builtin.apt:
+    name: ufw
+    state: present
+    update_cache: true
+  when: ansible_facts.os_family == "Debian"
+
+- name: Allow required TCP ports
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop: "{{ firewall_allowed_tcp_ports }}"
+  when:
+    - ansible_facts.os_family == "Debian"
+    - firewall_allowed_tcp_ports | length > 0
+
+- name: Set default policy - deny incoming, allow outgoing
+  community.general.ufw:
+    state: enabled
+    policy: "{{ item.policy }}"
+    direction: "{{ item.direction }}"
+  loop:
+    - { policy: "deny", direction: "incoming" }
+    - { policy: "allow", direction: "outgoing" }
+  when: ansible_facts.os_family == "Debian"
+
+- name: Enable UFW (non-interactive)
+  community.general.ufw:
+    state: enabled
+  when: ansible_facts.os_family == "Debian"
