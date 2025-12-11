@@ -2,7 +2,7 @@
 # Master-Playbook: vollständige Provisionierung eines Paperless-Hosts
 
 - name: Setup system + Docker + Paperless
-  hosts: paperless
+  hosts: ubuntu
   become: true
 
   roles:

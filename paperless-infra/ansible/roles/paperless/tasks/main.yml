@@ -19,6 +19,7 @@
     - "{{ paperless_redis_dir }}"
     - "{{ paperless_backup_dir }}"
     - "{{ paperless_backup_scripts_dir }}"
+    - "{{ paperless_scripts_dir }}"
 
 - name: Deploy docker-compose.yml from template
   ansible.builtin.template:
@@ -86,3 +87,48 @@
     owner: root
     group: root
     mode: '0755'
+
+# Warte bis Paperless läuft
+- name: Wait for Paperless web UI to be reachable
+  ansible.builtin.uri:
+    url: "{{ PAPERLESS_URL }}"
+    status_code: 200
+  register: paperless_web_ui
+  retries: 30
+  delay: 10
+  until: paperless_web_ui.status == 200
+  changed_when: false
+
+# Erzeuge einen Admin-Token
+- name: Create or get Paperless API token
+  become: true
+  ansible.builtin.command:
+    cmd: >
+      docker exec -i docker-webserver-1
+      python3 /usr/src/paperless/src/manage.py
+      drf_create_token admin
+  register: paperless_token_output
+  changed_when: false
+
+- name: Extract token
+  ansible.builtin.set_fact:
+    paperless_token: "{{ paperless_token_output.stdout | regex_search('[0-9a-f]{40}') }}"
+
+- name: Fail if no token was extracted
+  ansible.builtin.fail:
+    msg: "No Paperless API token could be extracted!"
+  when: paperless_token is not defined or paperless_token | length == 0
+
+# Erzeuge Scripts, um Paperless Kategorien, Tags und Correspondents anzulegen
+- name: Deploy create-scripts
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "{{ paperless_scripts_dir }}/{{ item }}"
+    owner: "{{ paperless_system_user }}"
+    group: "{{ paperless_system_user }}"
+    mode: '0750'
+  loop:
+    - 01-create-token-for-paperless.sh
+    - 02-create-correspondents.sh
+    - 03-create-document-types.sh
+    - 04-create-tags.sh

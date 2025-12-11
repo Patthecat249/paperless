@@ -20,6 +20,9 @@ paperless_backup_dir: "/paperless-backups"
 # Ort für die Backup&Restore-Skripte selbst
 paperless_backup_scripts_dir: "{{ paperless_backup_dir }}/scripts"
 
+# Ort für Skripte
+paperless_scripts_dir: "{{ paperless_root }}/scripts"
+
 # Ob beim Restore automatisch docker compose down/up gemacht werden soll
 paperless_restore_manage_docker: true
 

@@ -87,3 +87,24 @@
   community.general.ufw:
     state: enabled
   when: ansible_facts.os_family == "Debian"
+
+# Create a group for docker
+- name: Stelle sicher, dass Gruppe 'docker' existiert
+  ansible.builtin.group:
+    name: docker
+    state: present
+
+# Create a User which Paperless uses to start its services via docker
+- name: Ensure paperless user exists
+  ansible.builtin.user:
+    name: "{{ paperless_system_user }}"
+    system: true
+    create_home: true
+    shell: /bin/bash
+    state: present
+
+- name: Add paperless user to docker group
+  ansible.builtin.user:
+    name: "{{ paperless_system_user }}"
+    groups: docker
+    append: true
