@@ -5,7 +5,7 @@
     state: directory
     owner: "{{ paperless_system_user }}"
     group: "{{ paperless_system_group }}"
-    mode: '0755'
+    mode: '0750'
   loop:
     - "{{ paperless_root }}"
     - "{{ paperless_stack_dir }}"
