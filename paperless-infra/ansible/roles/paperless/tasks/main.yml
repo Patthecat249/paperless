@@ -92,8 +92,9 @@
 - name: Wait for Paperless web UI to be reachable
   ansible.builtin.uri:
     url: "{{ PAPERLESS_URL }}"
-    status_code: 200
+    status_code: [200, 302]
   register: paperless_web_ui
+  validate_certs: false   # nur wenn nötig
   retries: 30
   delay: 10
   until: paperless_web_ui.status == 200
