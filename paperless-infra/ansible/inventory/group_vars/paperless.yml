@@ -1,10 +1,23 @@
+# Ansible-User: mit disen User wird die Installation durchgeführt.
+## Dieser User muss auf dem Zielsystem existieren und kann mit den folgenden Befehlen angelegt werden
+# sudo adduser ansible
+# sudo usermod -aG sudo ansible
+# sudo visudo -f /etc/sudoers.d/ansible
+# ansible ALL=(ALL) NOPASSWD: ALL
+# sudo chmod 440 /etc/sudoers.d/ansible
+
+ansible_user: ansible  # Dieser Benutzer muss zuvor auf dem Ubuntu-Server existieren und sudo dürfen.
+
+
 # Basis-Einstellungen für Paperless
 paperless_root: /paperless                    # Wo soll Paperless im Filesystem installiert werden?
 paperless_http_port: 80                       # Unter welchem Port soll Paperless laufen?
 paperless_image_tag: "2.19.6"                 # Welche Version soll installiert werden?
-PAPERLESS_URL: "http://paperless.home.local"
+paperless_hostname: "paperless.home.local"
+paperless_ip: "172.16.249.152"
+PAPERLESS_URL: "http://{{ paperless_hostname }}"
 
-# Der Benutzer, mit dem die Installation durchgeführt wird und die Dienste gestartet werden
+# Der Benutzer, der für den Service verwendet wird und die Dienste gestartet werden.
 # System-User/Gruppe, dem die Dateien gehören sollen
 ## Der User muss vorher auf dem Betriebssystem existieren und sudo-Befehle ausführen dürfen
 paperless_system_user: paperless

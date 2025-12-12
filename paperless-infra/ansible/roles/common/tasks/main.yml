@@ -133,3 +133,11 @@
     mode: "0644"
   notify: Restart vsftpd
   when: ansible_facts.os_family == "Debian"
+
+- name: Ensure paperless hostname is present in /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: "{{ paperless_ip }} {{ paperless_hostname }}"
+    state: present
+    create: false
+  become: true

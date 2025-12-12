@@ -32,6 +32,10 @@ paperless_appdata_dir: "{{ paperless_data_dir }}/data"
 paperless_export_dir: "{{ paperless_data_dir }}/export"
 paperless_consume_dir: "{{ paperless_data_dir }}/consume"
 
+# VSFTPD-Temp-Ports
+vsftpd_pasv_min_port: 50000
+vsftpd_pasv_max_port: 50010
+
 # Unterordner für DB
 paperless_postgres_dir: "{{ paperless_db_dir }}/postgres"
 paperless_redis_dir: "{{ paperless_db_dir }}/redis"

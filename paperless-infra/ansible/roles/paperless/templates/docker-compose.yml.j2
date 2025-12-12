@@ -9,7 +9,7 @@ services:
     image: docker.io/library/postgres:18
     restart: unless-stopped
     volumes:
-      - "{{ paperless_postgres_dir }}:/var/lib/postgresql/data"
+      - "{{ paperless_postgres_dir }}:/var/lib/postgresql"
     environment:
       POSTGRES_DB: "{{ paperless_db_name }}"
       POSTGRES_USER: "{{ paperless_db_user }}"

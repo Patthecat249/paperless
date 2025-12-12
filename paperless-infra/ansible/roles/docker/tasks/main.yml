@@ -58,7 +58,7 @@
 
 - name: Add paperless user to docker group
   ansible.builtin.user:
-    name: paperless
+    name: "{{ paperless_system_user }}"
     groups: docker
     append: true
   when: ansible_user != "root"

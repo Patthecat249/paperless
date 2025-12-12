@@ -45,6 +45,21 @@
     owner: "{{ paperless_system_user }}"
     group: "{{ paperless_system_group }}"
 
+- name: Ensure correct ownership for Postgres data directory
+  ansible.builtin.file:
+    path: "{{ paperless_postgres_dir }}"
+    state: directory
+    owner: "999"
+    group: "999"
+    mode: "0755"
+    recurse: true
+  become: true
+
+
+#- name: End play execution
+#  ansible.builtin.meta: end_play
+
+
 - name: Pull and start paperless stack with docker compose
   ansible.builtin.command:
     cmd: docker compose up -d
@@ -92,13 +107,14 @@
 - name: Wait for Paperless web UI to be reachable
   ansible.builtin.uri:
     url: "{{ PAPERLESS_URL }}"
-    status_code: [200, 302]
+    status_code: 200
   register: paperless_web_ui
-  validate_certs: false   # nur wenn nötig
   retries: 30
   delay: 10
   until: paperless_web_ui.status == 200
   changed_when: false
+  tags:
+    - waitforpaperless
 
 # Erzeuge einen Admin-Token
 - name: Create or get Paperless API token
