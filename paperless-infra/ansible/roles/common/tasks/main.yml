@@ -108,3 +108,28 @@
     name: "{{ paperless_system_user }}"
     groups: docker
     append: true
+
+# Installiere einen FTP-Server, damit mein Drucker die Dateien in den Consume Ordner schieben kann
+- name: Install vsftpd
+  ansible.builtin.apt:
+    name: vsftpd
+    state: present
+    update_cache: true
+  when: ansible_facts.os_family == "Debian"
+
+- name: Ensure vsftpd is enabled and started
+  ansible.builtin.service:
+    name: vsftpd
+    state: started
+    enabled: true
+  when: ansible_facts.os_family == "Debian"
+
+- name: Deploy vsftpd configuration
+  ansible.builtin.template:
+    src: vsftpd.conf.j2
+    dest: /etc/vsftpd.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart vsftpd
+  when: ansible_facts.os_family == "Debian"
