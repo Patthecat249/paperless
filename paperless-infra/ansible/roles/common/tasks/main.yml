@@ -141,3 +141,24 @@
     state: present
     create: false
   become: true
+
+- name: Check if AppArmor service exists
+  ansible.builtin.stat:
+    path: /lib/systemd/system/apparmor.service
+  register: apparmor_unit
+  become: true
+
+- name: Stop and disable AppArmor if present
+  ansible.builtin.service:
+    name: apparmor
+    state: stopped
+    enabled: false
+  when: apparmor_unit.stat.exists
+  become: true
+
+- name: Ensure paperless user has consume directory as home
+  ansible.builtin.user:
+    name: "{{ paperless_system_user }}"
+    home: "{{ paperless_consume_dir }}"
+    move_home: false
+  become: true

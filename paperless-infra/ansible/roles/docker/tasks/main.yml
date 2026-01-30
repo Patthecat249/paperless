@@ -23,9 +23,14 @@
   args:
     creates: /etc/apt/keyrings/docker.gpg
 
+# - name: Set Docker repo architecture fact
+#   ansible.builtin.set_fact:
+#     docker_arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }}"
+
 - name: Set Docker repo architecture fact
   ansible.builtin.set_fact:
-    docker_arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }}"
+    docker_arch: "{{ 'amd64' if ansible_facts['architecture'] == 'x86_64' else ansible_facts['architecture'] }}"
+
 
 - name: Add Docker apt repository
   ansible.builtin.copy:

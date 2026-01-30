@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Sicherstellen, dass das Skript als root läuft
 if [[ "$EUID" -ne 0 ]]; then
-  echo "[!] Dieses Skript muss als root ausgeführt werden (sudo ./paperless-backup.sh)."
+  echo "[!] Dieses Skript muss als root ausgeführt werden (sudo ./backup-paperless.sh)."
   exit 1
 fi
 

@@ -25,7 +25,7 @@ sudo chmod 440 /etc/sudoers.d/ansible
 
    ```ini
    [paperless]
-   paperless ansible_host=172.16.249.152
+   paperless ansible_host=172.16.249.75
    ```
 
    Falls du einen anderen SSH-Benutzer nutzt, ergänze `ansible_user=<name>`.
@@ -95,4 +95,4 @@ Die Paperless-Rolle wartet automatisch mit dem Tag `waitforpaperless`, bis das W
 
 - Web-UI unter `http://<paperless_hostname>:<paperless_http_port>` testen.
 - Mit dem generierten Token (Ansible-Output) Skripte in `{{ paperless_scripts_dir }}` auf dem Server ausführen, um Korrespondenzen, Dokumenttypen und Tags zu erzeugen.
-- Backup-Ziel in `paperless_backup_dir` einhängen und die bereitgestellten Skripte (`paperless-backup.sh`, `paperless-restore.sh`) z. B. per Cron einplanen.
+- Backup-Ziel in `paperless_backup_dir` einhängen und die bereitgestellten Skripte (`backup-paperless.sh`, `restore-paperless.sh`) z. B. per Cron einplanen.

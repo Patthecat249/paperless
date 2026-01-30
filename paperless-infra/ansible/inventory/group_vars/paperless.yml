@@ -14,7 +14,7 @@ paperless_root: /paperless                    # Wo soll Paperless im Filesystem 
 paperless_http_port: 80                       # Unter welchem Port soll Paperless laufen?
 paperless_image_tag: "2.19.6"                 # Welche Version soll installiert werden?
 paperless_hostname: "paperless.home.local"
-paperless_ip: "172.16.249.152"
+paperless_ip: "172.16.249.75"
 PAPERLESS_URL: "http://{{ paperless_hostname }}"
 
 # Der Benutzer, der für den Service verwendet wird und die Dienste gestartet werden.

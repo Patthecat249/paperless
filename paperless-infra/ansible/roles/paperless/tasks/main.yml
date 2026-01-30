@@ -90,7 +90,7 @@
 - name: Deploy paperless backup script
   ansible.builtin.template:
     src: paperless-backup.sh.j2
-    dest: "{{ paperless_backup_scripts_dir }}/paperless-backup.sh"
+    dest: "{{ paperless_backup_scripts_dir }}/backup-paperless.sh"
     owner: root
     group: root
     mode: '0755'
@@ -98,7 +98,7 @@
 - name: Deploy paperless restore script
   ansible.builtin.template:
     src: paperless-restore.sh.j2
-    dest: "{{ paperless_backup_scripts_dir }}/paperless-restore.sh"
+    dest: "{{ paperless_backup_scripts_dir }}/restore-paperless.sh"
     owner: root
     group: root
     mode: '0755'
