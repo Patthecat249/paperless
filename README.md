@@ -14,7 +14,7 @@ ansible ALL=(ALL) NOPASSWD:ALL
 chmod 440 /etc/sudoers.d/ansible
 
 # Kopiere SSH-Key
-ssh-copy-id ansible@172.16.249.75
+ssh-copy-id ansible@172.16.249.76
 ```
 
 ## Execute the Ansible-Workflow to prepare the Ubuntu host, configure the system and install paperless via docker compose

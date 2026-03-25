@@ -25,7 +25,7 @@ sudo chmod 440 /etc/sudoers.d/ansible
 
    ```ini
    [paperless]
-   paperless ansible_host=172.16.249.75
+   paperless ansible_host=172.16.249.76
    ```
 
    Falls du einen anderen SSH-Benutzer nutzt, ergänze `ansible_user=<name>`.
